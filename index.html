@@ -89,7 +89,7 @@
   <div class="slidecontainer">
     <p style="text-align:left; color:white; font-family:Arial; margin-bottom: 0em;"> 30 min.
       <span style="float:right; color:white; font-family:Arial;"> 75 min. </span> </p>
-    <input id='myRange' class="slider" type="range" min="30" max="75" value="45" step="1">
+    <input id='myRange' class="slider" type="range" min="30" max="75" value="45" step="3">
     <p style="color:white; font-family:Arial">Transit travel time limit: <span id="sliderValue"></span> minutes</p>
   </div>
 
@@ -168,14 +168,14 @@
     // map the base block group data
     map.on('load', () => {
       // Add a custom vector tileset source
-      map.addSource('bg-access', {type: 'vector', url: "mapbox://uhwang3.bg_access" });
+      map.addSource('bg-access2', {type: 'vector', url: "mapbox://uhwang3.bg_access2" });
 
       map.addLayer(
         {
           'id': 'bg-access',
           'type': 'fill',
-          'source': 'bg-access',
-          'source-layer': 'bg_access',
+          'source': 'bg-access2',
+          'source-layer': 'bg_access2',
           'paint': {
             'fill-color': {
               'property' : 'access.all.45min',
@@ -192,8 +192,8 @@
         {
           'id': 'bg-dest',
           'type': 'fill',
-          'source': 'bg-access',
-          'source-layer': 'bg_access',
+          'source': 'bg-access2',
+          'source-layer': 'bg_access2',
           'paint': {
             'fill-outline-color': '#ffffff',
             'fill-color': '#ffffff',
@@ -204,7 +204,6 @@
         },
       );
 
-
       slider.addEventListener('input', (s) => {
         //update the printed slider value
         sliderValue.innerHTML = s.target.value;
@@ -212,7 +211,16 @@
         data_filtered = data.filter(function(d) {
           return d.transit_time_morning < s.target.value * 60
         });
+
+        const field = 'access.all.' + s.target.value + 'min'
+        map.setPaintProperty(
+          'bg-access', 'fill-color', {
+            'property' : field,
+            'stops': [[0, '#807b63'], [0.05, '#c7c15f'], [0.1, '#bf9741'], [0.2, '#d68b3a'], [0.3, '#eb6631'], [0.5, '#fc3321']]
+          }
+        )
       })
+
 
       map.on('mousemove', 'bg-access', (e) => {
         // Change the cursor style as a UI indicator.
