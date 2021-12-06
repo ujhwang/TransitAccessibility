@@ -101,7 +101,7 @@
   mapboxgl.accessToken = 'pk.eyJ1IjoidWh3YW5nMyIsImEiOiJja3d0bGh4cG8wemxtMm5xcTJ1anc4ajlxIn0.GPUcPfwoUXy6pItqRUvifw';
   var map = new mapboxgl.Map({
 	container: 'map', // container ID
-	style: 'mapbox://styles/mapbox/dark-v10', // style URL //dark-v10
+	style: 'mapbox://styles/uhwang3/ckwufpsse0va014pe2lwbyr8b', // style URL //dark-v10
 	center: [-84.39132138475864, 33.75255691555607], // starting position [lng, lat]
 	zoom: 9.5, // starting zoom
   minZoom: 7
@@ -160,15 +160,10 @@
 
   function ready(data){
 
-    // Update the current slider value (each time you drag the slider handle)
-    slider.oninput = function() {
-      sliderValue.innerHTML = this.value;
-    }
-
-    const data_filtered = data.filter(function(d) {
+    // create data_filtered using the initial value
+    data_filtered = data.filter(function(d) {
       return d.transit_time_morning < slider.value * 60
     });
-
 
     // map the base block group data
     map.on('load', () => {
@@ -190,8 +185,6 @@
             'fill-outline-color': 'rgba(0,0,0,0.1)'
           }
         },
-        // Place polygons under labels.
-        'settlement-label'
       );
 
       // Add filled county polygons for highlighted display.
@@ -209,32 +202,19 @@
           // Display none by adding a filter with an empty string.
           'filter': ['in', 'o_id', ]
         },
-        // Place polygons under labels.
-        'settlement-label'
       );
 
-      render(data_filtered)
 
-      // slider.addEventListener('input', (e) => {
-      //   let data_filtered = data.filter(function(d) {
-      //     return d.transit_time_morning < slider.value * 60
-      //   });
-      //   render(data_filtered)
-      // })
+      slider.addEventListener('input', (s) => {
+        //update the printed slider value
+        sliderValue.innerHTML = s.target.value;
 
-      slider.oninput = function() {
-        sliderValue.innerHTML = this.value;
-        let data_filtered = data.filter(function(d) {
-          return d.transit_time_morning < slider.value * 60
+        data_filtered = data.filter(function(d) {
+          return d.transit_time_morning < s.target.value * 60
         });
-        render(data_filtered)
-      }
+      })
 
-    }) //map.on ends here
-
-    function render(data_filtered) {
       map.on('mousemove', 'bg-access', (e) => {
-
         // Change the cursor style as a UI indicator.
         map.getCanvas().style.cursor = 'pointer';
 
@@ -243,8 +223,6 @@
 
         const o_d_pairs = data_filtered.filter(function(d) {
           return d['o_id'] === feature.properties['o_id']})
-
-        console.log(data_filtered)
 
         const dest_ids = o_d_pairs.map(function(d) {return d.d_id});
 
@@ -296,17 +274,18 @@
         // Add the selected features to the highlighted layer.
         map.setFilter('bg-dest', myFilter);
 
+
         // Display a popup with the name of the county.
         popup
-        .setLngLat(e.lngLat)
-        .setHTML(
-        'Jobs accessible within ' + '<b>' + slider.value + '</b>' + ' minutes: ' + '<br>' +
-        "<font size='+0.5'>"+'<center>'+'<b>'+ accessibleJobs.toString() + ' (' +
-          Math.round(accessibleJobs/feature.properties['jobs.all']*1000)/10 +
-          "% of total commutes)" + '</b>' + "</font>" +'</center>'
+          .setLngLat(e.lngLat)
+          .setHTML(
+          'Jobs accessible within ' + '<b>' + slider.value + '</b>' + ' minutes: ' + '<br>' +
+          "<font size='+0.5'>"+'<center>'+'<b>'+ accessibleJobs.toString() + ' (' +
+            Math.round(accessibleJobs/feature.properties['jobs.all']*1000)/10 +
+            "% of total commutes)" + '</b>' + "</font>" +'</center>'
           )
-        .addTo(map);
-      });
+          .addTo(map);
+      }); //mousemove ends here
 
       map.on('mouseleave', 'bg-access', () => {
         map.getCanvas().style.cursor = '';
@@ -314,7 +293,8 @@
         map.setFilter('bg-dest', ['in', 'o_id', '']);
         overlay.style.display = 'none';
       });
-    } //render ends here
+
+    }) //map.on.load ends here
 
   } // ready ends here
 
