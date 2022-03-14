@@ -567,6 +567,15 @@
 
     })
 
+    window.onload = function() {
+    	if(!window.location.hash) {
+    		window.location = window.location + '#loaded';
+    		window.location.reload();
+    	}
+    }
+
+    window.onload();
+
     // map the base block group data
     map.on('load', () => {
       // Add a custom vector tileset source
@@ -639,7 +648,6 @@
           }
         )
       })
-
 
       map.on('mousemove', 'bg_access_absolute_0313', (e) => {
         // Change the cursor style as a UI indicator.
@@ -796,15 +804,6 @@
       }),
       'bottom-right'
     );
-
-    window.onload = function() {
-    	if(!window.location.hash) {
-    		window.location = window.location + '#loaded';
-    		window.location.reload();
-    	}
-    }
-
-    window.onload();
 
   } // ready ends here
 
