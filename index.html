@@ -385,7 +385,7 @@
     ready(data[0])
   })
 
-  ready = function(data){
+  function ready(data){
 
     function buildFilter(arr) {
           var filter = ['in', 'o_id'];
@@ -809,44 +809,44 @@
 
   } // ready ends here
 
-  function coordinate() {
+function coordinate() {
 
-    var disable = false;
+var disable = false;
 
-    map.on('move', function() {
-      if (!disable) {
-        var center = map.getCenter();
-        var zoom = map.getZoom();
-        var pitch = map.getPitch();
-        var bearing = map.getBearing();
+map.on('move', function() {
+  if (!disable) {
+    var center = map.getCenter();
+    var zoom = map.getZoom();
+    var pitch = map.getPitch();
+    var bearing = map.getBearing();
 
-        disable = true;
-        map_rel.setCenter(center);
-        map_rel.setZoom(zoom);
-        map_rel.setPitch(pitch);
-        map_rel.setBearing(bearing);
-        disable = false;
-      }
-    })
-
-    map_rel.on('move', function() {
-      if (!disable) {
-        var center = map_rel.getCenter();
-        var zoom = map_rel.getZoom();
-        var pitch = map_rel.getPitch();
-        var bearing = map_rel.getBearing();
-
-        disable = true;
-        map.setCenter(center);
-        map.setZoom(zoom);
-        map.setPitch(pitch);
-        map.setBearing(bearing);
-        disable = false;
-      }
-    })
+    disable = true;
+    map_rel.setCenter(center);
+    map_rel.setZoom(zoom);
+    map_rel.setPitch(pitch);
+    map_rel.setBearing(bearing);
+    disable = false;
   }
+})
 
-  coordinate();
+map_rel.on('move', function() {
+  if (!disable) {
+    var center = map_rel.getCenter();
+    var zoom = map_rel.getZoom();
+    var pitch = map_rel.getPitch();
+    var bearing = map_rel.getBearing();
+
+    disable = true;
+    map.setCenter(center);
+    map.setZoom(zoom);
+    map.setPitch(pitch);
+    map.setBearing(bearing);
+    disable = false;
+  }
+})
+}
+
+coordinate();
 
 </script>
 
