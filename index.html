@@ -68,7 +68,7 @@
         font-weight: 600;
     }
     .mapboxgl-popup-content {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 600;
         width: 300px;
         position: relative;
@@ -528,11 +528,13 @@
         popup_rel
           .setLngLat(er.lngLat)
           .setHTML(
-          '<center>' + 'Jobs accessible within ' + '<b>' + slider_rel.value + '</b>' +
+          '<center>' + 'Commuters who can access their jobs ' + '<br>' +
+          'within ' + '<b>' + "<font size='+1'>" + slider_rel.value + "</font>" + '</b>' +
           ' X driving time:' + '<br>' +
-          "<font size='+0.5'>" + '<b>'+ accessibledests.toString() + '</b>' + ' (' +
-          Math.round(accessibledests/feature_rel.properties['jobs.all']*1000)/10 +
-          "% of commutes from this area)" + "</font>" + '</center>'
+          "<font size='+1'>" + '<b>'+ accessibledests.toString() + "</font>" + '</b>' +
+            "<font size='-1'>" + ' (' + '<b>' +
+          Math.round(accessibledests/feature_rel.properties['jobs.all']*1000)/10 + '</b>' +
+          "% of commuters from this Block Group)" + '</center>' + '</font>'
           )
           .addTo(map_rel);
 
@@ -552,10 +554,12 @@
         const coordiante_on_abs = er.lngLat.wrap()
 
         popup.setLngLat(coordiante_on_abs).setHTML(
-          '<center>' + 'Jobs accessible within ' + '<b>' + slider.value + '</b>' + ' minutes: ' + '</center>' +
-          "<font size='+0.5'>"+'<center>'+ '<b>'+ accessibleJobs_on_abs.toString() + '</b>' + ' (' +
-          Math.round(accessibleJobs_on_abs/feature_rel.properties['jobs.all']*1000)/10 +
-          '% of commutes from this area)' + '</font>' +'</center>'
+          '<center>' + 'Commuters who can access their jobs ' + '<br>' +
+          'within ' + '<b>'+ "<font size='+1'>" + slider.value + "</font>" + '</b>' +
+          ' minutes: ' + '<br>' +
+          "<font size='+1'>"+ '<b>'+ accessibleJobs_on_abs.toString() + "</font>" + '</b>' + "<font size='-1'>" + ' (' + '<b>' +
+          Math.round(accessibleJobs_on_abs/feature_rel.properties['jobs.all']*1000)/10 + '</b>' +
+          '% of commuters from this Block Group)' + '</font>' +'</center>'
           ).addTo(map)
 
       }); //mousemove ends here
@@ -682,12 +686,13 @@
         popup
           .setLngLat(e.lngLat)
           .setHTML(
-          '<center>' + 'Jobs accessible within ' + '<b>' + slider.value + '</b>' + ' minutes: ' + '</center>' +
-          "<font size='+0.5'>"+'<center>'+ '<b>'+ accessibleJobs.toString() + '</b>' + ' (' +
-          Math.round(accessibleJobs/feature.properties['jobs.all']*1000)/10 +
-          "% of commutes from this area)" + "</font>" +'</center>'
-          )
-          .addTo(map);
+          '<center>' + 'Commuters who can access their jobs ' + '<br>' +
+          'within ' + '<b>' + "<font size='+1'>"+ slider.value + '</font>' + '</b>' +
+          ' minutes: ' + '<br>' +
+          "<font size='+1'>"+ '<b>'+ accessibleJobs.toString() + "</font>" + '</b>' + "<font size='-1'>" + ' (' + '<b>' +
+          Math.round(accessibleJobs/feature.properties['jobs.all']*1000)/10 + '</b>' +
+          '% of commuters from this Block Group)' + '</font>' +'</center>'
+          ).addTo(map);
 
         const o_d_pairs_on_rel = data_filtered_access_mor.filter(function(d) {
           return d['o_id'] === feature.properties['o_id']})
@@ -704,12 +709,12 @@
         const coordiante_on_rel = e.lngLat.wrap()
 
         popup_rel.setLngLat(coordiante_on_rel).setHTML(
-          '<center>' + 'Jobs accessible within ' + '<b>' + slider_rel.value + '</b>' +
-          ' X driving time:' + '<center>'
-          + "<font size='+0.5'>"+'<center>'+'<b>'+ accessibledests_on_rel.toString() +
-          '</b>' + ' (' +
-          Math.round(accessibledests_on_rel/feature.properties['jobs.all']*1000)/10 +
-          "% of commutes from this area)" + "</font>" +'</center>'
+          '<center>' + 'Commuters who can access their jobs ' + '<br>' +
+          'within ' + '<b>' + "<font size='+1'>" + slider_rel.value + '</font>' + '</b>' +
+          ' X driving time:' + '<br>' +
+          "<font size='+1'>"+ '<b>'+ accessibledests_on_rel.toString() + "</font>" + '</b>' + "<font size='-1'>" + ' (' + '<b>' +
+          Math.round(accessibledests_on_rel/feature.properties['jobs.all']*1000)/10 + '</b>' +
+          '% of commuters from this Block Group)' + '</font>' +'</center>'
           ).addTo(map_rel)
 
       }); //mousemove ends here
