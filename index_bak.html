@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transit Accessibility Mapping Test</title>
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Muli" />
+</head>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        z-index: 0
+    }
+    .map-overlay {
+        font: 15px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        background-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        border-radius: 3px;
+        position: absolute;
+        width: 250px;
+        top: 20px;
+        left: 20px;
+        padding: 10px;
+        display: none;
+    }
+    .mapboxgl-popup-content {
+        font: 400 15px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        width: 250px;
+        position: relative;
+        background: #fff;
+        opacity: 0.7;
+        border-radius: 3px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+        padding: 4px 4px 4px;
+        pointer-events: auto;
+        line-height: 1.6;
+    }
+    .slidecontainer {
+      position: absolute;
+      right: 50px;
+      top: 20px;
+      width: 20%;
+    }
+    .slider {
+      -webkit-appearance: none;  /* Override default CSS styles */
+      appearance: none;
+      width: 100%; /* Full-width */
+      height: 15px; /* Specified height */
+      border-radius: 5px;
+      background: #d3d3d3; /* Grey background */
+      outline: none; /* Remove outline */
+      opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+      /* -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+      /* transition: opacity .2s; */
+    }
+    .slider:hover {
+      opacity: 1;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none; /* Override default look */
+      appearance: none;
+      width: 25px; /* Set a specific slider handle width */
+      height: 25px; /* Slider handle height */
+      border-radius: 50%;
+      background: #04AA6D; /* Green background */
+      cursor: pointer; /* Cursor on hover */
+    }
+    /* .rangeslider {
+        left: 80%;
+        top: 50px;
+        width: 17%;
+    } */
+</style>
+
+
+
+<body>
+  <div id="map"></div>
+  <div id="map-overlay" class="map-overlay"></div>
+  <div class="slidecontainer">
+    <p style="text-align:left; color:white; font-family:Arial; margin-bottom: 0em;"> 30 min.
+      <span style="float:right; color:white; font-family:Arial;"> 75 min. </span> </p>
+    <input id='myRange' class="slider" type="range" min="30" max="75" value="45" step="3">
+    <p style="color:white; font-family:Arial">Transit travel time limit: <span id="sliderValue"></span> minutes</p>
+  </div>
+
+  <script>
+  d3.select('map')
+    .attr("width", window.innerWidth)
+    .attr("height", window.innerHeight);
+
+  mapboxgl.accessToken = 'pk.eyJ1IjoidWh3YW5nMyIsImEiOiJja3d0bGh4cG8wemxtMm5xcTJ1anc4ajlxIn0.GPUcPfwoUXy6pItqRUvifw';
+  var map = new mapboxgl.Map({
+	container: 'map', // container ID
+	style: 'mapbox://styles/uhwang3/ckwufpsse0va014pe2lwbyr8b', // style URL //dark-v10
+	center: [-84.39132138475864, 33.75255691555607], // starting position [lng, lat]
+	zoom: 9.5, // starting zoom
+  minZoom: 7
+  });
+
+  var container = map.getCanvasContainer();
+  var svg = d3.select(container)
+      .append("svg")
+      .attr("width", "100%")
+      .attr("height", "2000")
+      .style("position", "absolute")
+      .style("z-index", 1);
+
+  const overlay = document.getElementById('map-overlay');
+
+  const popup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: true
+  });
+
+
+  var slider = document.getElementById("myRange");
+  var sliderValue = document.getElementById("sliderValue");
+  sliderValue.innerHTML = slider.value; // Display the default slider value
+
+  // Because features come from tiled vector data,
+  // feature geometries may be split or duplicated across tile boundaries.
+  // As a result, features may appear multiple times in query results.
+  function getUniqueFeatures(features, comparatorProperty) {
+      const uniqueIds = new Set();
+      const uniqueFeatures = [];
+      for (const feature of features) {
+          const id = feature.properties[comparatorProperty];
+          if (!uniqueIds.has(id)) {
+              uniqueIds.add(id);
+              uniqueFeatures.push(feature);
+          }
+      }
+      return uniqueFeatures;
+  }
+
+
+  Promise.all([d3.dsv(",", "data/bg_pair_access_75min.csv", function (d) {
+      return {
+          o_id: +d['o_id'],
+          d_id: +d['d_id'],
+          transit_time_morning: +d['transit.time.morning'],
+          jobs_all: +d['jobs.all'],
+          jobs_low: +d['jobs.low'],
+          jobs_high: +d['jobs_high']
+      }}
+    )]
+  ).then(function(data) {
+    ready(data[0])
+  })
+
+  function ready(data){
+
+    // create data_filtered using the initial value
+    data_filtered = data.filter(function(d) {
+      return d.transit_time_morning < slider.value * 60
+    });
+
+    // map the base block group data
+    map.on('load', () => {
+      // Add a custom vector tileset source
+      map.addSource('bg-access2', {type: 'vector', url: "mapbox://uhwang3.bg_access2" });
+
+      map.addLayer(
+        {
+          'id': 'bg-access',
+          'type': 'fill',
+          'source': 'bg-access2',
+          'source-layer': 'bg_access2',
+          'paint': {
+            'fill-color': {
+              'property' : 'access.all.45min',
+              'stops': [[0, '#807b63'], [0.05, '#c7c15f'], [0.1, '#bf9741'], [0.2, '#d68b3a'], [0.3, '#eb6631'], [0.5, '#fc3321']]
+            },
+            'fill-opacity': 0.5,
+            'fill-outline-color': 'rgba(0,0,0,0.1)'
+          }
+        },
+      );
+
+      // Add filled county polygons for highlighted display.
+      map.addLayer(
+        {
+          'id': 'bg-dest',
+          'type': 'fill',
+          'source': 'bg-access2',
+          'source-layer': 'bg_access2',
+          'paint': {
+            'fill-outline-color': '#ffffff',
+            'fill-color': '#ffffff',
+            'fill-opacity': 0.5
+          },
+          // Display none by adding a filter with an empty string.
+          'filter': ['in', 'o_id', ]
+        },
+      );
+
+      slider.addEventListener('input', (s) => {
+        //update the printed slider value
+        sliderValue.innerHTML = s.target.value;
+
+        data_filtered = data.filter(function(d) {
+          return d.transit_time_morning < s.target.value * 60
+        });
+
+        const field = 'access.all.' + s.target.value + 'min'
+        map.setPaintProperty(
+          'bg-access', 'fill-color', {
+            'property' : field,
+            'stops': [[0, '#807b63'], [0.05, '#c7c15f'], [0.1, '#bf9741'], [0.2, '#d68b3a'], [0.3, '#eb6631'], [0.5, '#fc3321']]
+          }
+        )
+      })
+
+
+      map.on('mousemove', 'bg-access', (e) => {
+        // Change the cursor style as a UI indicator.
+        map.getCanvas().style.cursor = 'pointer';
+
+        // Use the first found feature.
+        const feature = e.features[0];
+
+        const o_d_pairs = data_filtered.filter(function(d) {
+          return d['o_id'] === feature.properties['o_id']})
+
+        const dest_ids = o_d_pairs.map(function(d) {return d.d_id});
+
+        function buildFilter(arr) {
+          var filter = ['in', 'o_id'];
+
+          if (arr.length === 0) {
+            return filter;
+          }
+
+          for(var i = 0; i < arr.length; i += 1) {
+            filter.push(arr[i]);
+          }
+
+          return filter;
+        }
+
+        var myFilter = buildFilter(dest_ids);
+
+        // Use filter to collect only results with the same origin id.
+        const destBGs = map.querySourceFeatures('bg-access', {
+          sourceLayer: 'bg_access2',
+          filter: myFilter
+        });
+
+        // Remove duplicates by checking for matching ID.
+        const destBGs_unique = getUniqueFeatures(destBGs, 'o_id');
+
+        // Total accessible jobs.
+        const accessibleJobs = o_d_pairs.reduce((memo, feature) => {
+          return memo + feature['jobs_all'];
+        }, 0);
+
+        // Render found features in an overlay.
+        const info_jobs = document.createElement('div');
+        info_jobs.innerHTML = "Total commuters: "+ feature.properties['jobs.all'] + "<br>" +
+        "30-minute commuters: "+ feature.properties['jobs.all.30min'] +
+        " (" + Math.round(feature.properties['access.all.30min']*1000)/10 + "%)" + "<br>" +
+        "45-minute commuters: "+ feature.properties['jobs.all.45min'] +
+        " (" + Math.round(feature.properties['access.all.45min']*1000)/10 + "%)" + "<br>" +
+        "60-minute commuters: "+ feature.properties['jobs.all.60min'] +
+        " (" + Math.round(feature.properties['access.all.60min']*1000)/10 + "%)" + "<br>"
+
+        overlay.innerHTML = '';
+        overlay.style.display = 'block';
+
+        overlay.appendChild(info_jobs);
+
+        // Add the selected features to the highlighted layer.
+        map.setFilter('bg-dest', myFilter);
+
+
+        // Display a popup with the name of the county.
+        popup
+          .setLngLat(e.lngLat)
+          .setHTML(
+          'Jobs accessible within ' + '<b>' + slider.value + '</b>' + ' minutes: ' + '<br>' +
+          "<font size='+0.5'>"+'<center>'+'<b>'+ accessibleJobs.toString() + ' (' +
+            Math.round(accessibleJobs/feature.properties['jobs.all']*1000)/10 +
+            "% of total commutes)" + '</b>' + "</font>" +'</center>'
+          )
+          .addTo(map);
+      }); //mousemove ends here
+
+      map.on('mouseleave', 'bg-access', () => {
+        map.getCanvas().style.cursor = '';
+        popup.remove();
+        map.setFilter('bg-dest', ['in', 'o_id', '']);
+        overlay.style.display = 'none';
+      });
+
+    }) //map.on.load ends here
+
+  } // ready ends here
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
