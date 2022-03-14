@@ -378,8 +378,7 @@
           d_id: +d['d_id'],
           transit_time_mor: +d['transit.time.morning'],
           jobs_all: +d['jobs.all'],
-          access_mor: +d['transit.access.morning'],
-          to: +d['cnt']
+          access_mor: +d['transit.access.morning']
       }}
     )]
   ).then(function(data) {
@@ -706,7 +705,7 @@
 
         // tooltip = synced info on the absolute map
         const accessibledests_on_rel = o_d_pairs_on_rel.reduce((memo, feature) => {
-          return memo + feature['to'];
+          return memo + feature['jobs.all'];
         }, 0);
 
         const coordiante_on_rel = e.lngLat.wrap()
