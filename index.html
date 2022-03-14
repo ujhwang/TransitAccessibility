@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <style>
@@ -85,7 +86,7 @@
     .legend-box{
       position: absolute;
       left: 20px;
-      top: 300px;
+      top: 200px;
       width: 260px;
       height: 230px;
       color: white;
@@ -97,7 +98,7 @@
     .legend-wrapper{
       position: absolute;
       left: 20px;
-      top: 300px;
+      top: 200px;
       width: 260px;
       height: 230px;
       color: white;
@@ -154,7 +155,7 @@
       flex-direction: column;
     }
     .titleMapSub {
-      font-size: 20px;
+      font-size: 23px;
       font-weight: 200;
       margin-top: 5px;
       display: flex;
@@ -163,7 +164,7 @@
     .sliderContainerLeft {
       position: absolute;
       left: 0%;
-      top: 200px;
+      top: 115px;
       width: 260px;
       height: 120px;
     }
@@ -179,7 +180,7 @@
     .sliderContainerRight {
       position: absolute;
       left: 50%;
-      top: 200px;
+      top: 115px;
       width: 260px;
       height: 120px;
     }
@@ -216,11 +217,7 @@
       background: #04AA6D; /* Green background */
       cursor: pointer; /* Cursor on hover */
     }
-    /* .rangeslider {
-        left: 80%;
-        top: 50px;
-        width: 17%;
-    } */
+
 </style>
 
 
@@ -292,6 +289,7 @@
   </div>
 
   <script>
+
   // color
   const colors = ['#213E9A','#551EAD','#C019BD','#D31256','#E6470A','#F9E200']
 
