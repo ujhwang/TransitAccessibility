@@ -686,12 +686,15 @@
         popup
           .setLngLat(e.lngLat)
           .setHTML(
-          '<center>' + 'Commuters who can access their jobs ' + '<br>' +
-          'within ' + '<b>' + "<font size='+1'>"+ slider.value + '</font>' + '</b>' +
-          ' minutes: ' + '<br>' +
-          "<font size='+1'>"+ '<b>'+ accessibleJobs.toString() + "</font>" + '</b>' + "<font size='-1'>" + ' (' + '<b>' +
-          Math.round(accessibleJobs/feature.properties['jobs.all']*1000)/10 + '</b>' +
-          '% of commuters from this Block Group)' + '</font>' +'</center>'
+          '<center>'+
+          'Commuters who can access their jobs '+'<br>'+
+          'within '+
+          '<b>' + "<font size='+1'>"+slider.value+'</font>'+'</b>'+
+          ' minutes: '+'<br>'+
+          "<font size='+1'>"+'<b>'+accessibleJobs.toString()+"</font>"+
+          '</b>' + "<font size='-1'>"+' ('+'<b>'+
+          Math.round(accessibleJobs/feature.properties['jobs.all']*1000)/10+'</b>'+
+          '% of commuters from this Block Group)'+'</font>'+'</center>'
           ).addTo(map);
 
         const o_d_pairs_on_rel = data_filtered_access_mor.filter(function(d) {
