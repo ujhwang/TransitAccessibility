@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Transit Accessibility</title>
-    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Muli" />
 </head>
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
 <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <style>
@@ -573,7 +570,6 @@
         map_rel.setFilter('bg-origin', ['in', 'o_id', '']);
 
       });
-
     })
 
     // map the base block group data
@@ -702,7 +698,7 @@
 
         // tooltip = synced info on the absolute map
         const accessibledests_on_rel = o_d_pairs_on_rel.reduce((memo, feature) => {
-          return memo + feature['jobs.all'];
+          return memo + feature['jobs_all'];
         }, 0);
 
         const coordiante_on_rel = e.lngLat.wrap()
@@ -715,6 +711,7 @@
           Math.round(accessibledests_on_rel/feature.properties['jobs.all']*1000)/10 +
           "% of commutes from this area)" + "</font>" +'</center>'
           ).addTo(map_rel)
+
       }); //mousemove ends here
 
       map.on('mouseleave', 'bg_access_absolute_0313', () => {
@@ -845,8 +842,6 @@
   }
 
 coordinate();
-
-console.log(window.location.hash)
 
 </script>
 
