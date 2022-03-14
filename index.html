@@ -361,6 +361,15 @@
       return uniqueFeatures;
   }
 
+  window.onload = function() {
+    if(!window.location.hash) {
+      window.location = window.location + '#loaded';
+      window.location.reload();
+    }
+  }
+
+  window.onload();
+
   Promise.all([d3.dsv(",", "data/measure.csv", function (d) {
       return {
           o_id: +d['o_id'],
@@ -566,15 +575,6 @@
       });
 
     })
-
-    window.onload = function() {
-    	if(!window.location.hash) {
-    		window.location = window.location + '#loaded';
-    		window.location.reload();
-    	}
-    }
-
-    window.onload();
 
     // map the base block group data
     map.on('load', () => {
