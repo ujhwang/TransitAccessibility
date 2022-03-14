@@ -361,15 +361,6 @@
       return uniqueFeatures;
   }
 
-  window.onload = function() {
-    if(!window.location.hash) {
-      window.location = window.location + '#loaded';
-      window.location.reload();
-    }
-  }
-
-  window.onload();
-
   Promise.all([d3.dsv(",", "data/measure.csv", function (d) {
       return {
           o_id: +d['o_id'],
@@ -384,6 +375,15 @@
   })
 
   function ready(data){
+
+    window.onload = function() {
+      if(!window.location.hash) {
+        window.location = window.location + '#loaded';
+        window.location.reload();
+      }
+    }
+
+    window.onload();
 
     function buildFilter(arr) {
           var filter = ['in', 'o_id'];
