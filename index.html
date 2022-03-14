@@ -372,7 +372,10 @@
       return uniqueFeatures;
   }
 
-  Promise.all([d3.dsv(",", "data/measure.csv", function (d) {
+  var data = []
+
+  Promise.all([
+    d3.dsv(",", "data/measure.csv", function (d) {
       return {
           o_id: +d['o_id'],
           d_id: +d['d_id'],
@@ -381,472 +384,473 @@
           access_mor: +d['transit.access.morning']
       }}
     )]
-  ).then(function(data) {
-    ready(data[0])
+  ).then(function(d) {
+    data.push(d[0]);
+    // ready(d[0])
   })
 
-  function ready(data){
+  // ready = function(data){
 
-    function buildFilter(arr) {
-          var filter = ['in', 'o_id'];
+  function buildFilter(arr) {
+        var filter = ['in', 'o_id'];
 
-          if (arr.length === 0) {
-            return filter;
-          }
-
-          for(var i = 0; i < arr.length; i += 1) {
-            filter.push(arr[i]);
-          }
-
+        if (arr.length === 0) {
           return filter;
         }
 
-    // create data_filtered using the initial value
-    data_filtered_transit_time_mor = data.filter(function(d) {
-      return d.transit_time_mor < slider.value * 60
-    });
-
-    data_filtered_access_mor = data.filter(function(d) {
-      return d.access_mor > (1/slider_rel.value)
-    });
-
-
-    map_rel.on('load', () => {
-      map_rel.addSource('bg_access_relative_0313',  {type: 'vector', url: "mapbox://uhwang3.bg_access_relative_0313" });
-
-      map_rel.addLayer(
-        {
-          'id': 'bg_access_relative_0313',
-          'type': 'fill',
-          'source': 'bg_access_relative_0313',
-          'source-layer': 'bg_access_relative_0313',
-          'paint': {
-            'fill-color': {
-              'property' : 'access.com.mor.2.5',
-              'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
-            },
-            'fill-opacity': 0.5,
-            'fill-outline-color': 'rgba(0,0,0,0.1)'
-          }
-        },
-      );
-
-      map_rel.addLayer(
-        {
-          'id': 'bg-dest',
-          'type': 'fill',
-          'source': 'bg_access_relative_0313',
-          'source-layer': 'bg_access_relative_0313',
-          'paint': {
-            'fill-outline-color': '#ffffff',
-            'fill-color': '#ffffff',
-            'fill-opacity': 0.5
-          },
-          // Display none by adding a filter with an empty string.
-          'filter': ['in', 'o_id', ]
-        },
-      );
-
-      map_rel.addLayer(
-        {
-          'id': 'bg-origin',
-          'type': 'fill',
-          'source': 'bg_access_relative_0313',
-          'source-layer': 'bg_access_relative_0313',
-          'paint': {
-            'fill-outline-color': '#19ff00',
-            'fill-color': '#19ff00',
-            'fill-opacity': 0.4
-          },
-          // Display none by adding a filter with an empty string.
-          'filter': ['in', 'o_id', ]
-        },
-      );
-
-
-      slider_rel.addEventListener('input', (sr) => {
-        //update the printed slider value
-        sliderValue_rel.innerHTML = sr.target.value;
-
-        data_filtered_access_mor = data.filter(function(d) {
-            return d.access_mor > (1/slider_rel.value)
-        });
-
-        // 1을 1.0으로 인식 못함
-        if (sr.target.value === '1') {
-          var field_rel = 'access.com.mor.' + sr.target.value + '.0';
+        for(var i = 0; i < arr.length; i += 1) {
+          filter.push(arr[i]);
         }
-        else if (sr.target.value === '2') {
-          var field_rel = 'access.com.mor.' + sr.target.value + '.0';
-        }
-        else if (sr.target.value === '3') {
-          var field_rel = 'access.com.mor.' + sr.target.value + '.0';
-        }
-        else if (sr.target.value === '4') {
-          var field_rel = 'access.com.mor.' + sr.target.value + '.0';
-        }
-        else {
-          var field_rel = 'access.com.mor.' + sr.target.value;
-        }
-        map_rel.setPaintProperty(
-          'bg_access_relative_0313', 'fill-color', {
-            'property' : field_rel,
+
+        return filter;
+      }
+
+  // create data_filtered using the initial value
+  data_filtered_transit_time_mor = data.filter(function(d) {
+    return d.transit_time_mor < slider.value * 60
+  });
+
+  data_filtered_access_mor = data.filter(function(d) {
+    return d.access_mor > (1/slider_rel.value)
+  });
+
+
+  map_rel.on('load', () => {
+    map_rel.addSource('bg_access_relative_0313',  {type: 'vector', url: "mapbox://uhwang3.bg_access_relative_0313" });
+
+    map_rel.addLayer(
+      {
+        'id': 'bg_access_relative_0313',
+        'type': 'fill',
+        'source': 'bg_access_relative_0313',
+        'source-layer': 'bg_access_relative_0313',
+        'paint': {
+          'fill-color': {
+            'property' : 'access.com.mor.2.5',
             'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
-          }
-        )
-      })
-
-      map_rel.on('mousemove', 'bg_access_relative_0313', (er) => {
-        // Change the cursor style as a UI indicator.
-        map_rel.getCanvas().style.cursor = 'pointer';
-
-        const feature_rel = er.features[0];
-
-        // relative
-        const o_d_pairs_rel = data_filtered_access_mor.filter(function(d) {
-          return d['o_id'] === feature_rel.properties['o_id']})
-
-        const dest_ids_rel = o_d_pairs_rel.map(function(d) {return d.d_id});
-
-        var myFilter_rel = buildFilter(dest_ids_rel);
-
-        // Use filter to collect only results with the same origin id.
-        const destBGs_rel = map_rel.querySourceFeatures('bg_access_relative_0313', {
-          sourceLayer: 'bg_access_relative_0313',
-          filter: myFilter_rel
-        });
-
-        // Remove duplicates by checking for matching ID.
-        const destBGs_unique_rel = getUniqueFeatures(destBGs_rel, 'o_id');
-
-        // Total accessible jobs.
-        const accessibledests = o_d_pairs_rel.reduce((memo, feature) => {
-          return memo + feature['jobs_all']
-        }, 0);
-
-        // Add the selected features to the highlighted layer.
-        map_rel.setFilter('bg-dest', myFilter_rel);
-        map_rel.setFilter('bg-origin', ['in', 'o_id', feature_rel.properties['o_id']]);
-        map.setFilter('bg-origin', ['in', 'o_id', feature_rel.properties['o_id']]);
-
-        // Display a popup with the name of the county.
-        popup_rel
-          .setLngLat(er.lngLat)
-          .setHTML(
-          '<center>' + 'Jobs accessible within ' + '<b>' + slider_rel.value + '</b>' +
-          ' X driving time:' + '<br>' +
-          "<font size='+0.5'>" + '<b>'+ accessibledests.toString() + '</b>' + ' (' +
-          Math.round(accessibledests/feature_rel.properties['jobs.all']*1000)/10 +
-          "% of commutes from this area)" + "</font>" + '</center>'
-          )
-          .addTo(map_rel);
-
-        // highlighted = synned info on the absolute map
-        const o_d_pairs_on_abs = data_filtered_transit_time_mor.filter(function(d) {
-          return d['o_id'] === feature_rel.properties['o_id']})
-        const dest_ids_on_abs = o_d_pairs_on_abs.map(function(d) {return d.d_id});
-        var myFilter_on_abs = buildFilter(dest_ids_on_abs);
-
-        map.setFilter('bg-dest', myFilter_on_abs)
-
-        // tooltip = synced info on the absolute map
-        const accessibleJobs_on_abs = o_d_pairs_on_abs.reduce((memo, feature) => {
-          return memo + feature['jobs_all'];
-        }, 0);
-
-        const coordiante_on_abs = er.lngLat.wrap()
-
-        popup.setLngLat(coordiante_on_abs).setHTML(
-          '<center>' + 'Jobs accessible within ' + '<b>' + slider.value + '</b>' + ' minutes: ' + '</center>' +
-          "<font size='+0.5'>"+'<center>'+ '<b>'+ accessibleJobs_on_abs.toString() + '</b>' + ' (' +
-          Math.round(accessibleJobs_on_abs/feature_rel.properties['jobs.all']*1000)/10 +
-          '% of commutes from this area)' + '</font>' +'</center>'
-          ).addTo(map)
-
-      }); //mousemove ends here
-
-      map_rel.on('mouseleave', 'bg_access_relative_0313', () => {
-        map_rel.getCanvas().style.cursor = '';
-        popup_rel.remove();
-        popup.remove();
-        map.setFilter('bg-dest', ['in', 'o_id', '']);
-        map_rel.setFilter('bg-dest', ['in', 'o_id', '']);
-        map.setFilter('bg-origin', ['in', 'o_id', '']);
-        map_rel.setFilter('bg-origin', ['in', 'o_id', '']);
-
-      });
-
-    })
-
-    // map the base block group data
-    map.on('load', () => {
-      // Add a custom vector tileset source
-      map.addSource('bg_access_absolute_0313', {type: 'vector', url: "mapbox://uhwang3.bg_access_absolute_0313" });
-
-      map.addLayer(
-        {
-          'id': 'bg_access_absolute_0313',
-          'type': 'fill',
-          'source': 'bg_access_absolute_0313',
-          'source-layer': 'bg_access_absolute_0313',
-          'paint': {
-            'fill-color': {
-              'property' : 'access.com.mor.45min',
-              'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
-            },
-            'fill-opacity': 0.5,
-            'fill-outline-color': 'rgba(0,0,0,0.1)'
-          }
-        },
-      );
-
-
-      // Add filled county polygons for highlighted display.
-      map.addLayer(
-        {
-          'id': 'bg-dest',
-          'type': 'fill',
-          'source': 'bg_access_absolute_0313',
-          'source-layer': 'bg_access_absolute_0313',
-          'paint': {
-            'fill-outline-color': '#ffffff',
-            'fill-color': '#ffffff',
-            'fill-opacity': 0.5
           },
-          // Display none by adding a filter with an empty string.
-          'filter': ['in', 'o_id', ]
-        },
-      );
-
-      map.addLayer(
-        {
-          'id': 'bg-origin',
-          'type': 'fill',
-          'source': 'bg_access_absolute_0313',
-          'source-layer': 'bg_access_absolute_0313',
-          'paint': {
-            'fill-outline-color': '#19ff00',
-            'fill-color': '#19ff00',
-            'fill-opacity': 0.4
-          },
-          // Display none by adding a filter with an empty string.
-          'filter': ['in', 'o_id', ]
-        },
-      );
-
-      slider.addEventListener('input', (s) => {
-        //update the printed slider value
-        sliderValue.innerHTML = s.target.value;
-
-        data_filtered_transit_time_mor = data.filter(function(d) {
-          return d.transit_time_mor < s.target.value * 60
-        });
-
-        const field = 'access.com.mor.' + s.target.value + 'min'
-        map.setPaintProperty(
-          'bg_access_absolute_0313', 'fill-color', {
-            'property' : field,
-            'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
-          }
-        )
-      })
-
-
-      map.on('mousemove', 'bg_access_absolute_0313', (e) => {
-        // Change the cursor style as a UI indicator.
-        map.getCanvas().style.cursor = 'pointer';
-
-        // Use the first found feature.
-        const feature = e.features[0];
-
-        const o_d_pairs = data_filtered_transit_time_mor.filter(function(d) {
-          return d['o_id'] === feature.properties['o_id']})
-
-        const dest_ids = o_d_pairs.map(function(d) {return d.d_id});
-
-        var myFilter = buildFilter(dest_ids);
-
-        // Use filter to collect only results with the same origin id.
-        const destBGs = map.querySourceFeatures('bg_access_absolute_0313', {
-          sourceLayer: 'bg_access_absolute_0313',
-          filter: myFilter
-        });
-
-        // Remove duplicates by checking for matching ID.
-        const destBGs_unique = getUniqueFeatures(destBGs, 'o_id');
-
-        // Total accessible jobs.
-        const accessibleJobs = o_d_pairs.reduce((memo, feature) => {
-          return memo + feature['jobs_all'];
-        }, 0);
-
-        // Add the selected features to the highlighted layer.
-        map.setFilter('bg-dest', myFilter);
-        map.setFilter('bg-origin', ['in', 'o_id', feature.properties['o_id']]);
-        map_rel.setFilter('bg-origin', ['in', 'o_id', feature.properties['o_id']]);
-
-        // Display a popup with the name of the county.
-        popup
-          .setLngLat(e.lngLat)
-          .setHTML(
-          '<center>' + 'Jobs accessible within ' + '<b>' + slider.value + '</b>' + ' minutes: ' + '</center>' +
-          "<font size='+0.5'>"+'<center>'+ '<b>'+ accessibleJobs.toString() + '</b>' + ' (' +
-          Math.round(accessibleJobs/feature.properties['jobs.all']*1000)/10 +
-          "% of commutes from this area)" + "</font>" +'</center>'
-          )
-          .addTo(map);
-
-        const o_d_pairs_on_rel = data_filtered_access_mor.filter(function(d) {
-          return d['o_id'] === feature.properties['o_id']})
-        const dest_ids_on_rel = o_d_pairs_on_rel.map(function(d) {return d.d_id});
-        var myFilter_on_rel = buildFilter(dest_ids_on_rel);
-
-        map_rel.setFilter('bg-dest', myFilter_on_rel)
-
-        // tooltip = synced info on the absolute map
-        const accessibledests_on_rel = o_d_pairs_on_rel.reduce((memo, feature) => {
-          return memo + feature['jobs.all'];
-        }, 0);
-
-        const coordiante_on_rel = e.lngLat.wrap()
-
-        popup_rel.setLngLat(coordiante_on_rel).setHTML(
-          '<center>' + 'Jobs accessible within ' + '<b>' + slider_rel.value + '</b>' +
-          ' X driving time:' + '<center>'
-          + "<font size='+0.5'>"+'<center>'+'<b>'+ accessibledests_on_rel.toString() +
-          '</b>' + ' (' +
-          Math.round(accessibledests_on_rel/feature.properties['jobs.all']*1000)/10 +
-          "% of commutes from this area)" + "</font>" +'</center>'
-          ).addTo(map_rel)
-      }); //mousemove ends here
-
-      map.on('mouseleave', 'bg_access_absolute_0313', () => {
-        map.getCanvas().style.cursor = '';
-        popup.remove();
-        popup_rel.remove();
-        map.setFilter('bg-dest', ['in', 'o_id', '']);
-        map_rel.setFilter('bg-dest', ['in', 'o_id', '']);
-        map.setFilter('bg-origin', ['in', 'o_id', '']);
-        map_rel.setFilter('bg-origin', ['in', 'o_id', '']);
-
-      });
-
-    }) //map.on.load ends here
-
-    // add additional maps (atlanta boundary & main road)
-    map.on('load', () => {
-      map.addSource('atl_boundary',  {type: 'vector', url: "mapbox://uhwang3.atl_boundary" });
-
-      map.addSource('main_road_3counties',  {type: 'vector', url: "mapbox://uhwang3.cl0q27y7p3mcw20qgismthmry-4a3tz" });
-
-      map.addLayer(
-        {
-          'id': 'main_road_3counties',
-          'type': 'line',
-          'source': 'main_road_3counties',
-          'source-layer': 'main_road_3counties',
-          'paint': {
-            'line-color': 'rgba(20,20,20,0.7)',
-            'line-width': 1.5
-          }
-        },
-      );
-
-      map.addLayer(
-        {
-          'id': 'atl_boundary',
-          'type': 'fill',
-          'source': 'atl_boundary',
-          'source-layer': 'atl_boundary',
-          'paint': {
-            'fill-color':'rgba(0,0,0,0)',
-            'fill-outline-color': 'rgba(200,200,200,0.5)'
-          }
-        },
-      );
-    })
-
-    // add the same additional maps on the relative map as well
-    map_rel.on('load', () => {
-      map_rel.addSource('main_road_3counties',  {type: 'vector', url: "mapbox://uhwang3.cl0q27y7p3mcw20qgismthmry-4a3tz" });
-
-      map_rel.addLayer(
-        {
-          'id': 'main_road_3counties',
-          'type': 'line',
-          'source': 'main_road_3counties',
-          'source-layer': 'main_road_3counties',
-          'paint': {
-            'line-color': 'rgba(20,20,20,0.7)',
-            'line-width': 1.5
-          }
-        },
-      );
-
-      map_rel.addSource('atl_boundary',  {type: 'vector', url: "mapbox://uhwang3.atl_boundary" });
-
-      map_rel.addLayer(
-        {
-          'id': 'atl_boundary',
-          'type': 'fill',
-          'source': 'atl_boundary',
-          'source-layer': 'atl_boundary',
-          'paint': {
-            'fill-color':'rgba(0,0,0,0)',
-            'fill-outline-color': 'rgba(200,200,200,0.5)'
-          }
-        },
-      );
-    })
-
-    map_rel.addControl(
-      new MapboxGeocoder({
-        accessToken: mapboxgl.accessToken,
-        mapboxgl: mapboxgl,
-      }),
-      'bottom-right'
+          'fill-opacity': 0.5,
+          'fill-outline-color': 'rgba(0,0,0,0.1)'
+        }
+      },
     );
 
-  } // ready ends here
+    map_rel.addLayer(
+      {
+        'id': 'bg-dest',
+        'type': 'fill',
+        'source': 'bg_access_relative_0313',
+        'source-layer': 'bg_access_relative_0313',
+        'paint': {
+          'fill-outline-color': '#ffffff',
+          'fill-color': '#ffffff',
+          'fill-opacity': 0.5
+        },
+        // Display none by adding a filter with an empty string.
+        'filter': ['in', 'o_id', ]
+      },
+    );
 
-function coordinate() {
+    map_rel.addLayer(
+      {
+        'id': 'bg-origin',
+        'type': 'fill',
+        'source': 'bg_access_relative_0313',
+        'source-layer': 'bg_access_relative_0313',
+        'paint': {
+          'fill-outline-color': '#19ff00',
+          'fill-color': '#19ff00',
+          'fill-opacity': 0.4
+        },
+        // Display none by adding a filter with an empty string.
+        'filter': ['in', 'o_id', ]
+      },
+    );
 
-var disable = false;
 
-map.on('move', function() {
-  if (!disable) {
-    var center = map.getCenter();
-    var zoom = map.getZoom();
-    var pitch = map.getPitch();
-    var bearing = map.getBearing();
+    slider_rel.addEventListener('input', (sr) => {
+      //update the printed slider value
+      sliderValue_rel.innerHTML = sr.target.value;
 
-    disable = true;
-    map_rel.setCenter(center);
-    map_rel.setZoom(zoom);
-    map_rel.setPitch(pitch);
-    map_rel.setBearing(bearing);
-    disable = false;
+      data_filtered_access_mor = data.filter(function(d) {
+          return d.access_mor > (1/slider_rel.value)
+      });
+
+      // 1을 1.0으로 인식 못함
+      if (sr.target.value === '1') {
+        var field_rel = 'access.com.mor.' + sr.target.value + '.0';
+      }
+      else if (sr.target.value === '2') {
+        var field_rel = 'access.com.mor.' + sr.target.value + '.0';
+      }
+      else if (sr.target.value === '3') {
+        var field_rel = 'access.com.mor.' + sr.target.value + '.0';
+      }
+      else if (sr.target.value === '4') {
+        var field_rel = 'access.com.mor.' + sr.target.value + '.0';
+      }
+      else {
+        var field_rel = 'access.com.mor.' + sr.target.value;
+      }
+      map_rel.setPaintProperty(
+        'bg_access_relative_0313', 'fill-color', {
+          'property' : field_rel,
+          'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
+        }
+      )
+    })
+
+    map_rel.on('mousemove', 'bg_access_relative_0313', (er) => {
+      // Change the cursor style as a UI indicator.
+      map_rel.getCanvas().style.cursor = 'pointer';
+
+      const feature_rel = er.features[0];
+
+      // relative
+      const o_d_pairs_rel = data_filtered_access_mor.filter(function(d) {
+        return d['o_id'] === feature_rel.properties['o_id']})
+
+      const dest_ids_rel = o_d_pairs_rel.map(function(d) {return d.d_id});
+
+      var myFilter_rel = buildFilter(dest_ids_rel);
+
+      // Use filter to collect only results with the same origin id.
+      const destBGs_rel = map_rel.querySourceFeatures('bg_access_relative_0313', {
+        sourceLayer: 'bg_access_relative_0313',
+        filter: myFilter_rel
+      });
+
+      // Remove duplicates by checking for matching ID.
+      const destBGs_unique_rel = getUniqueFeatures(destBGs_rel, 'o_id');
+
+      // Total accessible jobs.
+      const accessibledests = o_d_pairs_rel.reduce((memo, feature) => {
+        return memo + feature['jobs_all']
+      }, 0);
+
+      // Add the selected features to the highlighted layer.
+      map_rel.setFilter('bg-dest', myFilter_rel);
+      map_rel.setFilter('bg-origin', ['in', 'o_id', feature_rel.properties['o_id']]);
+      map.setFilter('bg-origin', ['in', 'o_id', feature_rel.properties['o_id']]);
+
+      // Display a popup with the name of the county.
+      popup_rel
+        .setLngLat(er.lngLat)
+        .setHTML(
+        '<center>' + 'Jobs accessible within ' + '<b>' + slider_rel.value + '</b>' +
+        ' X driving time:' + '<br>' +
+        "<font size='+0.5'>" + '<b>'+ accessibledests.toString() + '</b>' + ' (' +
+        Math.round(accessibledests/feature_rel.properties['jobs.all']*1000)/10 +
+        "% of commutes from this area)" + "</font>" + '</center>'
+        )
+        .addTo(map_rel);
+
+      // highlighted = synned info on the absolute map
+      const o_d_pairs_on_abs = data_filtered_transit_time_mor.filter(function(d) {
+        return d['o_id'] === feature_rel.properties['o_id']})
+      const dest_ids_on_abs = o_d_pairs_on_abs.map(function(d) {return d.d_id});
+      var myFilter_on_abs = buildFilter(dest_ids_on_abs);
+
+      map.setFilter('bg-dest', myFilter_on_abs)
+
+      // tooltip = synced info on the absolute map
+      const accessibleJobs_on_abs = o_d_pairs_on_abs.reduce((memo, feature) => {
+        return memo + feature['jobs_all'];
+      }, 0);
+
+      const coordiante_on_abs = er.lngLat.wrap()
+
+      popup.setLngLat(coordiante_on_abs).setHTML(
+        '<center>' + 'Jobs accessible within ' + '<b>' + slider.value + '</b>' + ' minutes: ' + '</center>' +
+        "<font size='+0.5'>"+'<center>'+ '<b>'+ accessibleJobs_on_abs.toString() + '</b>' + ' (' +
+        Math.round(accessibleJobs_on_abs/feature_rel.properties['jobs.all']*1000)/10 +
+        '% of commutes from this area)' + '</font>' +'</center>'
+        ).addTo(map)
+
+    }); //mousemove ends here
+
+    map_rel.on('mouseleave', 'bg_access_relative_0313', () => {
+      map_rel.getCanvas().style.cursor = '';
+      popup_rel.remove();
+      popup.remove();
+      map.setFilter('bg-dest', ['in', 'o_id', '']);
+      map_rel.setFilter('bg-dest', ['in', 'o_id', '']);
+      map.setFilter('bg-origin', ['in', 'o_id', '']);
+      map_rel.setFilter('bg-origin', ['in', 'o_id', '']);
+
+    });
+
+  })
+
+  // map the base block group data
+  map.on('load', () => {
+    // Add a custom vector tileset source
+    map.addSource('bg_access_absolute_0313', {type: 'vector', url: "mapbox://uhwang3.bg_access_absolute_0313" });
+
+    map.addLayer(
+      {
+        'id': 'bg_access_absolute_0313',
+        'type': 'fill',
+        'source': 'bg_access_absolute_0313',
+        'source-layer': 'bg_access_absolute_0313',
+        'paint': {
+          'fill-color': {
+            'property' : 'access.com.mor.45min',
+            'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
+          },
+          'fill-opacity': 0.5,
+          'fill-outline-color': 'rgba(0,0,0,0.1)'
+        }
+      },
+    );
+
+
+    // Add filled county polygons for highlighted display.
+    map.addLayer(
+      {
+        'id': 'bg-dest',
+        'type': 'fill',
+        'source': 'bg_access_absolute_0313',
+        'source-layer': 'bg_access_absolute_0313',
+        'paint': {
+          'fill-outline-color': '#ffffff',
+          'fill-color': '#ffffff',
+          'fill-opacity': 0.5
+        },
+        // Display none by adding a filter with an empty string.
+        'filter': ['in', 'o_id', ]
+      },
+    );
+
+    map.addLayer(
+      {
+        'id': 'bg-origin',
+        'type': 'fill',
+        'source': 'bg_access_absolute_0313',
+        'source-layer': 'bg_access_absolute_0313',
+        'paint': {
+          'fill-outline-color': '#19ff00',
+          'fill-color': '#19ff00',
+          'fill-opacity': 0.4
+        },
+        // Display none by adding a filter with an empty string.
+        'filter': ['in', 'o_id', ]
+      },
+    );
+
+    slider.addEventListener('input', (s) => {
+      //update the printed slider value
+      sliderValue.innerHTML = s.target.value;
+
+      data_filtered_transit_time_mor = data.filter(function(d) {
+        return d.transit_time_mor < s.target.value * 60
+      });
+
+      const field = 'access.com.mor.' + s.target.value + 'min'
+      map.setPaintProperty(
+        'bg_access_absolute_0313', 'fill-color', {
+          'property' : field,
+          'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
+        }
+      )
+    })
+
+
+    map.on('mousemove', 'bg_access_absolute_0313', (e) => {
+      // Change the cursor style as a UI indicator.
+      map.getCanvas().style.cursor = 'pointer';
+
+      // Use the first found feature.
+      const feature = e.features[0];
+
+      const o_d_pairs = data_filtered_transit_time_mor.filter(function(d) {
+        return d['o_id'] === feature.properties['o_id']})
+
+      const dest_ids = o_d_pairs.map(function(d) {return d.d_id});
+
+      var myFilter = buildFilter(dest_ids);
+
+      // Use filter to collect only results with the same origin id.
+      const destBGs = map.querySourceFeatures('bg_access_absolute_0313', {
+        sourceLayer: 'bg_access_absolute_0313',
+        filter: myFilter
+      });
+
+      // Remove duplicates by checking for matching ID.
+      const destBGs_unique = getUniqueFeatures(destBGs, 'o_id');
+
+      // Total accessible jobs.
+      const accessibleJobs = o_d_pairs.reduce((memo, feature) => {
+        return memo + feature['jobs_all'];
+      }, 0);
+
+      // Add the selected features to the highlighted layer.
+      map.setFilter('bg-dest', myFilter);
+      map.setFilter('bg-origin', ['in', 'o_id', feature.properties['o_id']]);
+      map_rel.setFilter('bg-origin', ['in', 'o_id', feature.properties['o_id']]);
+
+      // Display a popup with the name of the county.
+      popup
+        .setLngLat(e.lngLat)
+        .setHTML(
+        '<center>' + 'Jobs accessible within ' + '<b>' + slider.value + '</b>' + ' minutes: ' + '</center>' +
+        "<font size='+0.5'>"+'<center>'+ '<b>'+ accessibleJobs.toString() + '</b>' + ' (' +
+        Math.round(accessibleJobs/feature.properties['jobs.all']*1000)/10 +
+        "% of commutes from this area)" + "</font>" +'</center>'
+        )
+        .addTo(map);
+
+      const o_d_pairs_on_rel = data_filtered_access_mor.filter(function(d) {
+        return d['o_id'] === feature.properties['o_id']})
+      const dest_ids_on_rel = o_d_pairs_on_rel.map(function(d) {return d.d_id});
+      var myFilter_on_rel = buildFilter(dest_ids_on_rel);
+
+      map_rel.setFilter('bg-dest', myFilter_on_rel)
+
+      // tooltip = synced info on the absolute map
+      const accessibledests_on_rel = o_d_pairs_on_rel.reduce((memo, feature) => {
+        return memo + feature['jobs.all'];
+      }, 0);
+
+      const coordiante_on_rel = e.lngLat.wrap()
+
+      popup_rel.setLngLat(coordiante_on_rel).setHTML(
+        '<center>' + 'Jobs accessible within ' + '<b>' + slider_rel.value + '</b>' +
+        ' X driving time:' + '<center>'
+        + "<font size='+0.5'>"+'<center>'+'<b>'+ accessibledests_on_rel.toString() +
+        '</b>' + ' (' +
+        Math.round(accessibledests_on_rel/feature.properties['jobs.all']*1000)/10 +
+        "% of commutes from this area)" + "</font>" +'</center>'
+        ).addTo(map_rel)
+    }); //mousemove ends here
+
+    map.on('mouseleave', 'bg_access_absolute_0313', () => {
+      map.getCanvas().style.cursor = '';
+      popup.remove();
+      popup_rel.remove();
+      map.setFilter('bg-dest', ['in', 'o_id', '']);
+      map_rel.setFilter('bg-dest', ['in', 'o_id', '']);
+      map.setFilter('bg-origin', ['in', 'o_id', '']);
+      map_rel.setFilter('bg-origin', ['in', 'o_id', '']);
+
+    });
+
+  }) //map.on.load ends here
+
+  // add additional maps (atlanta boundary & main road)
+  map.on('load', () => {
+    map.addSource('atl_boundary',  {type: 'vector', url: "mapbox://uhwang3.atl_boundary" });
+
+    map.addSource('main_road_3counties',  {type: 'vector', url: "mapbox://uhwang3.cl0q27y7p3mcw20qgismthmry-4a3tz" });
+
+    map.addLayer(
+      {
+        'id': 'main_road_3counties',
+        'type': 'line',
+        'source': 'main_road_3counties',
+        'source-layer': 'main_road_3counties',
+        'paint': {
+          'line-color': 'rgba(20,20,20,0.7)',
+          'line-width': 1.5
+        }
+      },
+    );
+
+    map.addLayer(
+      {
+        'id': 'atl_boundary',
+        'type': 'fill',
+        'source': 'atl_boundary',
+        'source-layer': 'atl_boundary',
+        'paint': {
+          'fill-color':'rgba(0,0,0,0)',
+          'fill-outline-color': 'rgba(200,200,200,0.5)'
+        }
+      },
+    );
+  })
+
+  // add the same additional maps on the relative map as well
+  map_rel.on('load', () => {
+    map_rel.addSource('main_road_3counties',  {type: 'vector', url: "mapbox://uhwang3.cl0q27y7p3mcw20qgismthmry-4a3tz" });
+
+    map_rel.addLayer(
+      {
+        'id': 'main_road_3counties',
+        'type': 'line',
+        'source': 'main_road_3counties',
+        'source-layer': 'main_road_3counties',
+        'paint': {
+          'line-color': 'rgba(20,20,20,0.7)',
+          'line-width': 1.5
+        }
+      },
+    );
+
+    map_rel.addSource('atl_boundary',  {type: 'vector', url: "mapbox://uhwang3.atl_boundary" });
+
+    map_rel.addLayer(
+      {
+        'id': 'atl_boundary',
+        'type': 'fill',
+        'source': 'atl_boundary',
+        'source-layer': 'atl_boundary',
+        'paint': {
+          'fill-color':'rgba(0,0,0,0)',
+          'fill-outline-color': 'rgba(200,200,200,0.5)'
+        }
+      },
+    );
+  })
+
+  map_rel.addControl(
+    new MapboxGeocoder({
+      accessToken: mapboxgl.accessToken,
+      mapboxgl: mapboxgl,
+    }),
+    'bottom-right'
+  );
+
+  // } // ready ends here
+
+  function coordinate() {
+
+    var disable = false;
+
+    map.on('move', function() {
+      if (!disable) {
+        var center = map.getCenter();
+        var zoom = map.getZoom();
+        var pitch = map.getPitch();
+        var bearing = map.getBearing();
+
+        disable = true;
+        map_rel.setCenter(center);
+        map_rel.setZoom(zoom);
+        map_rel.setPitch(pitch);
+        map_rel.setBearing(bearing);
+        disable = false;
+      }
+    })
+
+    map_rel.on('move', function() {
+      if (!disable) {
+        var center = map_rel.getCenter();
+        var zoom = map_rel.getZoom();
+        var pitch = map_rel.getPitch();
+        var bearing = map_rel.getBearing();
+
+        disable = true;
+        map.setCenter(center);
+        map.setZoom(zoom);
+        map.setPitch(pitch);
+        map.setBearing(bearing);
+        disable = false;
+      }
+    })
   }
-})
 
-map_rel.on('move', function() {
-  if (!disable) {
-    var center = map_rel.getCenter();
-    var zoom = map_rel.getZoom();
-    var pitch = map_rel.getPitch();
-    var bearing = map_rel.getBearing();
-
-    disable = true;
-    map.setCenter(center);
-    map.setZoom(zoom);
-    map.setPitch(pitch);
-    map.setBearing(bearing);
-    disable = false;
-  }
-})
-}
-
-coordinate();
+  coordinate();
 
 </script>
 
