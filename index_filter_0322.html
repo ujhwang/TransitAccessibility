@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transit Accessibility</title>
+</head>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<style>
+
+    *{
+        font-family: 'Source Sans Pro', sans-serif;
+        margin: 0;
+    }
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #424141;
+    }
+    #map {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        width: 100%;
+        z-index: 0
+    }
+    #map_rel {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        right: 0px;
+        width: 100%;
+        z-index: 0
+    }
+    #navbar {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 100%;
+      height: 90px;
+      background-color: black;
+      opacity: 0.25;
+    }
+    .logo-wrapper {
+        position: absolute;
+        top: 30px;
+        right: 10px;
+        width: 310px;
+        height: 50px;
+        display: -webkit-flex;
+        display: -ms-flex;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .logo-text {
+        color: white;
+        font-size: 12;
+        font-family: 'Heebo', san-serif;
+        font-weight: 600;
+    }
+    .mapboxgl-popup-content {
+        font-size: 15px;
+        font-weight: 600;
+        width: 300px;
+        position: relative;
+        background: rgb(255, 255, 255);
+        opacity: 0.7;
+        border-radius: 3px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+        padding: 4px 4px 4px;
+        pointer-events: auto;
+        line-height: 1.6;
+    }
+    .session {
+      position: absolute;
+      left: 20px;
+      top: 450px;
+      width: 260px;
+      height: 110px;
+      color: white;
+      font-weight: 500;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    .legend-box{
+      position: absolute;
+      left: 20px;
+      top: 200px;
+      width: 260px;
+      height: 230px;
+      color: white;
+      font-weight: 500;
+      background-color: black;
+      opacity: 0.3;
+      border-radius: 10px;
+    }
+    .legend-wrapper{
+      position: absolute;
+      left: 20px;
+      top: 200px;
+      width: 260px;
+      height: 230px;
+      color: white;
+      font-weight: 500;
+      border-radius: 10px;
+    }
+    .legendTitle{
+      position: absolute;
+      left: 10px;
+      top: 7px;
+      font-size:17px;
+    }
+    .legendBoxes{
+      position: absolute;
+      left: 10px;
+      top: 100px;
+      display: flex;
+      flex-direction: column;
+    }
+    .legendBox{
+      margin-top: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background-color: black;
+    }
+    .legendText{
+      position: absolute;
+      left: 25px;
+      top: 100px;
+      margin-left: 10px;
+      color: white;
+      font-weight: 300;
+      display: flex;
+      flex-direction: column;
+    }
+    .titleMain{
+      position: absolute;
+      left: 30px;
+      top: 20px;
+      font-size: 36px;
+      font-weight: 800;
+      color: white;
+    }
+    .titleMap{
+      position: absolute;
+      left: 0px;
+      top: 100px;
+      width: 100%;
+      height: 50px;
+      margin-left: 10px;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    .titleMapSub {
+      font-size: 23px;
+      font-weight: 200;
+      margin-top: 5px;
+      display: flex;
+      justify-content: space-around;
+    }
+    .sliderContainerLeft {
+      position: absolute;
+      left: 0%;
+      top: 115px;
+      width: 260px;
+      height: 120px;
+    }
+    .sliderContentLeft {
+      font-weight: 300;
+      font-size: 13px;
+      color: white;
+      position: absolute;
+      left: 23px;
+      top: 0px;
+      width: 100%;
+    }
+    .sliderContainerRight {
+      position: absolute;
+      left: 50%;
+      top: 115px;
+      width: 260px;
+      height: 120px;
+    }
+    .sliderContentRight {
+      font-weight: 300;
+      font-size: 13px;
+      color: white;
+      position: absolute;
+      left: 23px;
+      top: 0px;
+      width: 100%;
+    }
+    .slider {
+      -webkit-appearance: none;  /* Override default CSS styles */
+      appearance: none;
+      width: 100%; /* Full-width */
+      height: 10px; /* Specified height */
+      border-radius: 5px;
+      background: #d3d3d3; /* Grey background */
+      outline: none; /* Remove outline */
+      opacity: 0.6; /* Set transparency (for mouse-over effects on hover) */
+      /* -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+      /* transition: opacity .2s; */
+    }
+    .slider:hover {
+      opacity: 1;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none; /* Override default look */
+      appearance: none;
+      width: 25px; /* Set a specific slider handle width */
+      height: 25px; /* Slider handle height */
+      border-radius: 50%;
+      background: #04AA6D; /* Green background */
+      cursor: pointer; /* Cursor on hover */
+    }
+
+</style>
+
+
+<body>
+  <div id="map"></div>
+  <div id="map_rel"></div>
+  <div id="navbar"></div>
+  <div class="titleMain">
+    <a href="." style="text-decoration:none; color:white;">Atlanta Public Transit Commuting Accessibility Explorer</a>
+  </div>
+  <div class="logo-wrapper">
+    <a href="https://gatech.edu/"><img src="https://www.gatech.edu/sites/all/themes/gt/images/gt-logo-oneline-white.svg" alt="" width="150" height="30"></a>
+    <a href="https://cspav.gatech.edu/" style="margin-left:10px; font-size:12px; text-decoration:none">
+      <p class="logo-text">Center for Spatial Planning Analytics and Visualization</p>
+    </a>
+  </div>
+  <div class="titleMap">
+    <div class="titleMapSub">
+      <p style="color:white; text-align:center">
+        <font size='+2'><b>Absolute Accessibility</b></font><br>
+        Transit Time</p>
+      <p style="color:white; text-align:center">
+        <font size='+2'><b>Relative Accessibility</b></font><br>
+        Transit Time / Driving Time</p>
+    </div>
+  </div>
+  <div class="legend-box"></div>
+  <div class="legend-wrapper">
+    <div class="legendTitle">
+      <p>Proportion of residents who can commute within the given<sup style="vertical-align: text-top;">*</sup> time <br> by walking + public transit during morning peak hour (6-8 AM)
+      </p>
+    </div>
+    <div class="legendBoxes">
+      <div class="legendBox", style="background-color:#213E9A"></div>
+      <div class="legendBox", style="background-color:#551EAD"></div>
+      <div class="legendBox", style="background-color:#C019BD"></div>
+      <div class="legendBox", style="background-color:#D31256"></div>
+      <div class="legendBox", style="background-color:#E6470A"></div>
+      <div class="legendBox", style="background-color:#F9E200"></div>
+    </div>
+    <div class="legendText">
+      <p>less then 5%</p>
+      <p>5 - 10%</p>
+      <p>10 - 20%</p>
+      <p>20 - 30%</p>
+      <p>30 - 50%</p>
+      <p>more than 50%</p>
+    </div>
+  </div>
+  <div class="sliderContainerLeft">
+    <div class='sliderContentLeft'>
+      <p style="margin-bottom:7px; font-size:17px; font-weight: 300;">
+        * Within <b><span id="sliderValue"></b> </span> minutes
+      </p>
+    <input id='myRange' class="slider" type="range" min="30" max="75" value="45" step="3">
+    <p style="text-align:left; margin-bottom: 0em;"> 30 minutes
+      <span style="float:right"> 75 minutes </span> </p>
+    </div>
+  </div>
+  <div class="sliderContainerRight">
+    <div class='sliderContentRight'>
+      <p style="margin-bottom:7px; font-size:17px; font-weight: 300;">
+        * Within <b><span id="sliderValue_rel"></b> </span> X driving time </p>
+      <input id='myRange_rel' class="slider" type="range" min="1" max="3" value="2" step="0.2">
+      <p style="text-align:left; margin-bottom: 0em;"> Equal
+        <span style="float:right"> 3 times </span> </p>
+    </div>
+  </div>
+  <div class="session">
+    <div class='session_time'>
+      <h2>Time of the day</h2>
+      <div class='row_trip' id='filters_time'>
+        <input id='mor' type='radio' name='toggle_time' value='mor' checked='checked'>
+        <label for='mor'>Morning</label>
+        <input id='eve' type='radio' name='toggle_time' value='eve'>
+        <label for='eve'>Evening</label>
+        <input id='off' type='radio' name='toggle_time' value='off'>
+        <label for='off'>Off-Peak</label>
+      </div>
+    </div>
+    <div class='session_trip'>
+      <h2>Trip purpose</h2>
+      <div class='row_trip' id='filters_trip'>
+        <input id='com' type='radio' name='toggle_trip' value='com' checked='checked'>
+        <label for='com'>Commute</label>
+        <input id='non' type='radio' name='toggle_trip' value='non'>
+        <label for='non'>Non-commute</label>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+  // color
+  const colors = ['#213E9A','#551EAD','#C019BD','#D31256','#E6470A','#F9E200']
+
+  window.onresize = function () {
+      setWindowSize();
+  }
+
+  function setWindowSize() {
+      var width = (window.innerWidth - 1) /2;
+      d3.select("#map").style("width", width + "px")
+      d3.select("#map_rel").style("width", width + "px")
+  }
+
+  setWindowSize();
+
+  // Create the map with token !토큰이 달라지면 폴리곤 및 다른 정보가 사라짐
+  mapboxgl.accessToken = 'pk.eyJ1IjoidWh3YW5nMyIsImEiOiJja3d0bGh4cG8wemxtMm5xcTJ1anc4ajlxIn0.GPUcPfwoUXy6pItqRUvifw';
+
+  var map = new mapboxgl.Map({
+	container: 'map', // container ID
+	style: 'mapbox://styles/uhwang3/ckwufpsse0va014pe2lwbyr8b', // style URL //dark-v10
+	center: [-84.39132, 33.822556], // starting position [lng, lat]
+	zoom: 9.5, // starting zoom
+  minZoom: 3
+  });
+
+    // Map_relative
+  var map_rel = new mapboxgl.Map({
+  container: 'map_rel', // container ID
+	style: 'mapbox://styles/uhwang3/ckwufpsse0va014pe2lwbyr8b', // style URL //dark-v10
+	center: [-84.39132, 33.822556], // starting position [lng, lat]
+	zoom: 9.5, // starting zoom
+  minZoom: 3,
+  });
+
+  const popup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: true
+  });
+
+  const popup_rel = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: true
+  });
+
+  // slider value for absolute
+  let slider = document.getElementById("myRange");
+  let sliderValue = document.getElementById("sliderValue");
+  sliderValue.innerHTML = slider.value; // Display the default slider value
+  let slider_filter = slider.value;
+  // slider value for relative
+  let slider_rel = document.getElementById("myRange_rel");
+  let sliderValue_rel = document.getElementById("sliderValue_rel");
+  sliderValue_rel.innerHTML = slider_rel.value; // Display the default slider value
+  let slider_filter_rel = slider_rel.value;
+
+  // Because features come from tiled vector data,
+  // feature geometries may be split or duplicated across tile boundaries.
+  // As a result, features may appear multiple times in query results.
+  function getUniqueFeatures(features, comparatorProperty) {
+      const uniqueIds = new Set();
+      const uniqueFeatures = [];
+      for (const feature of features) {
+          const id = feature.properties[comparatorProperty];
+          if (!uniqueIds.has(id)) {
+              uniqueIds.add(id);
+              uniqueFeatures.push(feature);
+          }
+      }
+      return uniqueFeatures;
+  }
+
+  function tripPurpose (a) {
+    if (a === 1) {
+      return "com"
+    }
+    else {
+      return "non"
+    }
+  }
+
+  Promise.all([d3.dsv(",", "data_0315/measure_0315.csv", function (d) {
+      return {
+          o_id: +d['o_id'],
+          d_id: +d['d_id'],
+          transit_time_mor: +d['transit.time.morning'],
+          transit_time_eve: +d['transit.time.evening'],
+          transit_time_off: +d['transit.time.offpeak'],
+          jobs_all: +d['jobs.all'],
+          ratio_mor: +d['ratio.mor'],
+          ratio_eve: +d['ratio.eve'],
+          ratio_off: +d['ratio.off']
+      }}
+    )]
+  ).then(function(data) {
+    ready(data[0])
+  })
+
+  function ready(data){
+
+    // reload the webpage since the map is not loaded
+    window.onload = function() {
+      if(!window.location.hash) {
+        window.location = window.location + '#loaded';
+        window.location.reload();
+      }
+    }
+    window.onload();
+
+    function buildFilter(arr) {
+          var filter = ['in', 'o_id'];
+
+          if (arr.length === 0) {
+            return filter;
+          }
+
+          for(var i = 0; i < arr.length; i += 1) {
+            filter.push(arr[i]);
+          }
+
+          return filter;
+        }
+    
+    // create data_filtered using the initial value
+    let time_filter = 'mor' 
+    let trip_filter = 'com' 
+
+    data_filtered_transit_time = data.filter(function(d) {
+      return d.transit_time_mor < slider.value
+    });
+
+    data_filtered_ratio = data.filter(function(d) {
+      return d.ratio_mor < slider_rel.value
+    });
+
+    map_rel.on('load', () => {
+      map_rel.addSource('bg_access_relative_0313',  {type: 'vector', url: "mapbox://uhwang3.bg_access_relative_0313" });
+
+      map_rel.addLayer(
+        {
+          'id': 'bg_access_relative_0313',
+          'type': 'fill',
+          'source': 'bg_access_relative_0313',
+          'source-layer': 'bg_access_relative_0313',
+          'paint': {
+            'fill-color': {
+              'property' : 'access.com.mor.2.0',
+              'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
+            },
+            'fill-opacity': 0.5,
+            'fill-outline-color': 'rgba(0,0,0,0.1)'
+          }
+        },
+      );
+
+      map_rel.addLayer(
+        {
+          'id': 'bg-dest',
+          'type': 'fill',
+          'source': 'bg_access_relative_0313',
+          'source-layer': 'bg_access_relative_0313',
+          'paint': {
+            'fill-outline-color': '#ffffff',
+            'fill-color': '#ffffff',
+            'fill-opacity': 0.5
+          },
+          // Display none by adding a filter with an empty string.
+          'filter': ['in', 'o_id', ]
+        },
+      );
+
+      map_rel.addLayer(
+        {
+          'id': 'bg-origin',
+          'type': 'fill',
+          'source': 'bg_access_relative_0313',
+          'source-layer': 'bg_access_relative_0313',
+          'paint': {
+            'fill-outline-color': '#19ff00',
+            'fill-color': '#19ff00',
+            'fill-opacity': 0.4
+          },
+          // Display none by adding a filter with an empty string.
+          'filter': ['in', 'o_id', ]
+        },
+      );
+
+      // change the property name by controlling time of the day (radio button)
+      document.getElementById('filters_time').addEventListener('change', (event_time) => {
+        const time_target = event_time.target.value;
+
+        time_filter = time_target
+
+                // 1을 1.0으로 인식 못함
+        if (slider_filter_rel === '1') {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + slider_filter_rel + '.0';
+        }
+        else if (slider_filter_rel === '2') {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + slider_filter_rel + '.0';
+        }
+        else if (slider_filter_rel === '3') {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + slider_filter_rel + '.0';
+        }
+        else {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + slider_filter_rel; 
+        }
+
+        if (time_filter === 'mor') {
+          data_filtered_ratio = data.filter(function(d) {
+          return d.ratio_mor < slider_rel.value
+        });
+        }
+        else if (time_filter === 'eve') {
+          data_filtered_ratio = data.filter(function(d) {
+          return d.ratio_eve < slider_rel.value
+        });
+        }
+        else if (time_filter === 'off') {
+          data_filtered_ratio = data.filter(function(d) {
+          return d.ratio_off < slider_rel.value
+        });
+        }
+
+        map_rel.setPaintProperty(
+          'bg_access_relative_0313', 'fill-color', {
+          'property' : field_rel,
+          'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
+          }
+        )
+          
+        });
+
+        
+      // change the property name by controlling time of the day (radio button)
+      document.getElementById('filters_trip').addEventListener('change', (event_trip) => {
+        const trip_target = event_trip.target.value;
+
+        trip_filter = trip_target
+
+                // 1을 1.0으로 인식 못함
+        if (slider_filter_rel === '1') {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + slider_filter_rel + '.0';
+        }
+        else if (slider_filter_rel === '2') {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + slider_filter_rel + '.0';
+        }
+        else if (slider_filter_rel === '3') {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + slider_filter_rel + '.0';
+        }
+        else {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + slider_filter_rel; 
+        }
+
+        if (time_filter === 'mor') {
+          data_filtered_ratio = data.filter(function(d) {
+          return d.ratio_mor < slider_rel.value
+        });
+        }
+        else if (time_filter === 'eve') {
+          data_filtered_ratio = data.filter(function(d) {
+          return d.ratio_eve < slider_rel.value
+        });
+        }
+        else if (time_filter === 'off') {
+          data_filtered_ratio = data.filter(function(d) {
+          return d.ratio_off < slider_rel.value
+        });
+        }
+
+        map_rel.setPaintProperty(
+          'bg_access_relative_0313', 'fill-color', {
+          'property' : field_rel,
+          'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
+          }
+        )
+          
+        });
+ 
+      // change the property name by controlling slider
+      slider_rel.addEventListener('input', (sr) => {
+        //update the printed slider value
+        sliderValue_rel.innerHTML = sr.target.value;
+
+        slider_filter_rel = sr.target.value;
+        
+        // 1을 1.0으로 인식 못함
+        if (sr.target.value === '1') {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + sr.target.value + '.0';
+        }
+        else if (sr.target.value === '2') {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + sr.target.value + '.0';
+        }
+        else if (sr.target.value === '3') {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + sr.target.value + '.0';
+        }
+        else {
+          var field_rel = 'access.' + trip_filter + '.' + time_filter + '.' + sr.target.value; 
+        }
+
+        if (time_filter === 'mor') {
+          data_filtered_ratio = data.filter(function(d) {
+          return d.ratio_mor < sr.target.value
+        });
+        }
+        else if (time_filter === 'eve') {
+          data_filtered_ratio = data.filter(function(d) {
+          return d.ratio_eve < sr.target.value
+        });
+        }
+        else if (time_filter === 'off') {
+          data_filtered_ratio = data.filter(function(d) {
+          return d.ratio_off < sr.target.value
+        });
+        }
+
+        map_rel.setPaintProperty(
+          'bg_access_relative_0313', 'fill-color', {
+            'property' : field_rel,
+            'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
+          }
+        )
+      })
+
+      map_rel.on('mousemove', 'bg_access_relative_0313', (er) => {
+        // Change the cursor style as a UI indicator.
+        map_rel.getCanvas().style.cursor = 'pointer';
+
+        const feature_rel = er.features[0];
+
+        // relative
+        const o_d_pairs_rel = data_filtered_ratio.filter(function(d) {
+          return d['o_id'] === feature_rel.properties['o_id']})
+
+        const dest_ids_rel = o_d_pairs_rel.map(function(d) {return d.d_id});
+
+        var myFilter_rel = buildFilter(dest_ids_rel);
+
+        // Use filter to collect only results with the same origin id.
+        const destBGs_rel = map_rel.querySourceFeatures('bg_access_relative_0313', {
+          sourceLayer: 'bg_access_relative_0313',
+          filter: myFilter_rel
+        });
+
+        // Remove duplicates by checking for matching ID.
+        const destBGs_unique_rel = getUniqueFeatures(destBGs_rel, 'o_id');
+
+        // Total accessible jobs.
+        const accessibledests = o_d_pairs_rel.reduce((memo, feature) => {
+          return memo + feature['jobs_all']
+        }, 0);
+
+        // Add the selected features to the highlighted layer.
+        map_rel.setFilter('bg-dest', myFilter_rel);
+        map_rel.setFilter('bg-origin', ['in', 'o_id', feature_rel.properties['o_id']]);
+        map.setFilter('bg-origin', ['in', 'o_id', feature_rel.properties['o_id']]);
+
+        // Display a popup with the name of the county.
+        popup_rel
+          .setLngLat(er.lngLat)
+          .setHTML(
+          '<center>' + 'Commuters who can access their jobs ' + '<br>' +
+          'within ' + '<b>' + "<font size='+1'>" + slider_rel.value + "</font>" + '</b>' +
+          ' X driving time:' + '<br>' +
+          "<font size='+1'>" + '<b>'+ accessibledests.toString() + "</font>" + '</b>' +
+            "<font size='-1'>" + ' (' + '<b>' +
+          Math.round(accessibledests/feature_rel.properties['jobs.all']*1000)/10 + '</b>' +
+          "% of commuters from this Block Group)" + '</center>' + '</font>'
+          )
+          .addTo(map_rel);
+
+        // highlighted = synned info on the absolute map
+        const o_d_pairs_on_abs = data_filtered_transit_time.filter(function(d) {
+          return d['o_id'] === feature_rel.properties['o_id']})
+        const dest_ids_on_abs = o_d_pairs_on_abs.map(function(d) {return d.d_id});
+        var myFilter_on_abs = buildFilter(dest_ids_on_abs);
+
+        map.setFilter('bg-dest', myFilter_on_abs)
+
+        // tooltip = synced info on the absolute map
+        const accessibleJobs_on_abs = o_d_pairs_on_abs.reduce((memo, feature) => {
+          return memo + feature['jobs_all'];
+        }, 0);
+
+        const coordiante_on_abs = er.lngLat.wrap()
+
+        popup.setLngLat(coordiante_on_abs).setHTML(
+          '<center>' + 'Commuters who can access their jobs ' + '<br>' +
+          'within ' + '<b>'+ "<font size='+1'>" + slider.value + "</font>" + '</b>' +
+          ' minutes: ' + '<br>' +
+          "<font size='+1'>"+ '<b>'+ accessibleJobs_on_abs.toString() + "</font>" + '</b>' + "<font size='-1'>" + ' (' + '<b>' +
+          Math.round(accessibleJobs_on_abs/feature_rel.properties['jobs.all']*1000)/10 + '</b>' +
+          '% of commuters from this Block Group)' + '</font>' +'</center>'
+          ).addTo(map)
+
+      }); //mousemove ends here
+
+      map_rel.on('mouseleave', 'bg_access_relative_0313', () => {
+        map_rel.getCanvas().style.cursor = '';
+        popup_rel.remove();
+        popup.remove();
+        map.setFilter('bg-dest', ['in', 'o_id', '']);
+        map_rel.setFilter('bg-dest', ['in', 'o_id', '']);
+        map.setFilter('bg-origin', ['in', 'o_id', '']);
+        map_rel.setFilter('bg-origin', ['in', 'o_id', '']);
+
+      });
+    })
+
+    // map the base block group data
+    map.on('load', () => {
+      // Add a custom vector tileset source
+      map.addSource('bg_access_absolute_0313', {type: 'vector', url: "mapbox://uhwang3.bg_access_absolute_0313" });
+
+      map.addLayer(
+        {
+          'id': 'bg_access_absolute_0313',
+          'type': 'fill',
+          'source': 'bg_access_absolute_0313',
+          'source-layer': 'bg_access_absolute_0313',
+          'paint': {
+            'fill-color': {
+              'property' : 'access.com.mor.45min',
+              'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
+            },
+            'fill-opacity': 0.5,
+            'fill-outline-color': 'rgba(0,0,0,0.1)'
+          }
+        },
+      );
+
+
+      // Add filled county polygons for highlighted display.
+      map.addLayer(
+        {
+          'id': 'bg-dest',
+          'type': 'fill',
+          'source': 'bg_access_absolute_0313',
+          'source-layer': 'bg_access_absolute_0313',
+          'paint': {
+            'fill-outline-color': '#ffffff',
+            'fill-color': '#ffffff',
+            'fill-opacity': 0.5
+          },
+          // Display none by adding a filter with an empty string.
+          'filter': ['in', 'o_id', ]
+        },
+      );
+
+      map.addLayer(
+        {
+          'id': 'bg-origin',
+          'type': 'fill',
+          'source': 'bg_access_absolute_0313',
+          'source-layer': 'bg_access_absolute_0313',
+          'paint': {
+            'fill-outline-color': '#19ff00',
+            'fill-color': '#19ff00',
+            'fill-opacity': 0.4
+          },
+          // Display none by adding a filter with an empty string.
+          'filter': ['in', 'o_id', ]
+        },
+      );
+      
+      // change the property name by controlling time of the day (radio button)
+      document.getElementById('filters_time').addEventListener('change', (event_time) => {
+          const time_target = event_time.target.value;
+
+          time_filter = time_target
+
+          const field = 'access.' + trip_filter + '.' +  time_filter + '.' + slider_filter + 'min'
+
+          if (time_filter === 'mor') {
+            data_filtered_transit_time = data.filter(function(d) {
+            return d.transit_time_mor < slider_filter
+            });
+          }
+          else if (time_filter === 'eve') {
+            data_filtered_transit_time = data.filter(function(d) {
+            return d.transit_time_eve < slider_filter
+            });
+          }
+          else if (time_filter === 'off') {
+            data_filtered_transit_time = data.filter(function(d) {
+            return d.transit_time_off < slider_filter
+            });
+          }
+
+          map.setPaintProperty(
+          'bg_access_absolute_0313', 'fill-color', {
+            'property' : field,
+            'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
+          }
+        )
+          
+        });
+
+        // change the property name by controlling trip purpose (radio button)
+        document.getElementById('filters_trip').addEventListener('change', (event_trip) => {
+          const trip_target = event_trip.target.value;
+
+          trip_filter = trip_target
+          
+          const field = 'access.' + trip_filter + '.' +  time_filter + '.' + slider_filter + 'min'
+
+          if (time_filter === 'mor') {
+            data_filtered_transit_time = data.filter(function(d) {
+            return d.transit_time_mor < slider_filter
+            });
+          }
+          else if (time_filter === 'eve') {
+            data_filtered_transit_time = data.filter(function(d) {
+            return d.transit_time_eve < slider_filter
+            });
+          }
+          else if (time_filter === 'off') {
+            data_filtered_transit_time = data.filter(function(d) {
+            return d.transit_time_off < slider_filter
+            });
+          }
+  
+          map.setPaintProperty(
+          'bg_access_absolute_0313', 'fill-color', {
+            'property' : field,
+            'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
+          }
+        )
+
+        });
+
+      // change the property name by controlling slider
+      slider.addEventListener('input', (s) => {
+        //update the printed slider value
+        sliderValue.innerHTML = s.target.value;
+
+        slider_filter = s.target.value
+
+        const field = 'access.' + trip_filter + '.' +  time_filter + '.' + slider_filter + 'min'
+
+        if (time_filter === 'mor') {
+          data_filtered_transit_time = data.filter(function(d) {
+          return d.transit_time_mor < s.target.value
+        });
+        }
+        else if (time_filter === 'eve') {
+          data_filtered_transit_time = data.filter(function(d) {
+          return d.transit_time_eve < s.target.value
+        });
+        }
+        else if (time_filter === 'off') {
+          data_filtered_transit_time = data.filter(function(d) {
+          return d.transit_time_off < s.target.value
+        });
+        }
+  
+        map.setPaintProperty(
+          'bg_access_absolute_0313', 'fill-color', {
+            'property' : field,
+            'stops': [[0, colors[0]], [0.05, colors[1]], [0.1, colors[2]], [0.2, colors[3]], [0.3, colors[4]], [0.5, colors[5]]]
+          }
+        )
+      })
+
+      map.on('mousemove', 'bg_access_absolute_0313', (e) => {
+        // Change the cursor style as a UI indicator.
+        map.getCanvas().style.cursor = 'pointer';
+
+        // Use the first found feature.
+        const feature = e.features[0];
+
+        const o_d_pairs = data_filtered_transit_time.filter(function(d) {
+          return d['o_id'] === feature.properties['o_id']})
+
+        const dest_ids = o_d_pairs.map(function(d) {return d.d_id});
+
+        var myFilter = buildFilter(dest_ids);
+
+        // Use filter to collect only results with the same origin id.
+        const destBGs = map.querySourceFeatures('bg_access_absolute_0313', {
+          sourceLayer: 'bg_access_absolute_0313',
+          filter: myFilter
+        });
+
+        // Remove duplicates by checking for matching ID.
+        const destBGs_unique = getUniqueFeatures(destBGs, 'o_id');
+
+        // Total accessible jobs.
+        const accessibleJobs = o_d_pairs.reduce((memo, feature) => {
+          return memo + feature['jobs_all'];
+        }, 0);
+
+        // Add the selected features to the highlighted layer.
+        map.setFilter('bg-dest', myFilter);
+        map.setFilter('bg-origin', ['in', 'o_id', feature.properties['o_id']]);
+        map_rel.setFilter('bg-origin', ['in', 'o_id', feature.properties['o_id']]);
+
+        // Display a popup with the name of the county.
+        popup
+          .setLngLat(e.lngLat)
+          .setHTML(
+          '<center>'+
+          'Commuters who can access their jobs '+'<br>'+
+          'within '+
+          '<b>' + "<font size='+1'>"+slider.value+'</font>'+'</b>'+
+          ' minutes: '+'<br>'+
+          "<font size='+1'>"+'<b>'+accessibleJobs.toString()+"</font>"+
+          '</b>' + "<font size='-1'>"+' ('+'<b>'+
+          Math.round(accessibleJobs/feature.properties['jobs.all']*1000)/10+'</b>'+
+          '% of commuters from this Block Group)'+'</font>'+'</center>'
+          ).addTo(map);
+
+        const o_d_pairs_on_rel = data_filtered_ratio.filter(function(d) {
+          return d['o_id'] === feature.properties['o_id']})
+        const dest_ids_on_rel = o_d_pairs_on_rel.map(function(d) {return d.d_id});
+        var myFilter_on_rel = buildFilter(dest_ids_on_rel);
+
+        map_rel.setFilter('bg-dest', myFilter_on_rel)
+
+        // tooltip = synced info on the absolute map
+        const accessibledests_on_rel = o_d_pairs_on_rel.reduce((memo, feature) => {
+          return memo + feature['jobs_all'];
+        }, 0);
+
+        const coordiante_on_rel = e.lngLat.wrap()
+
+        popup_rel.setLngLat(coordiante_on_rel).setHTML(
+          '<center>' + 'Commuters who can access their jobs ' + '<br>' +
+          'within ' + '<b>' + "<font size='+1'>" + slider_rel.value + '</font>' + '</b>' +
+          ' X driving time:' + '<br>' +
+          "<font size='+1'>"+ '<b>'+ accessibledests_on_rel.toString() + "</font>" + '</b>' + "<font size='-1'>" + ' (' + '<b>' +
+          Math.round(accessibledests_on_rel/feature.properties['jobs.all']*1000)/10 + '</b>' +
+          '% of commuters from this Block Group)' + '</font>' +'</center>'
+          ).addTo(map_rel)
+
+      }); //mousemove ends here
+
+      map.on('mouseleave', 'bg_access_absolute_0313', () => {
+        map.getCanvas().style.cursor = '';
+        popup.remove();
+        popup_rel.remove();
+        map.setFilter('bg-dest', ['in', 'o_id', '']);
+        map_rel.setFilter('bg-dest', ['in', 'o_id', '']);
+        map.setFilter('bg-origin', ['in', 'o_id', '']);
+        map_rel.setFilter('bg-origin', ['in', 'o_id', '']);
+
+      });
+
+    }) //map.on.load ends here
+
+    // add additional maps (atlanta boundary & main road)
+    map.on('load', () => {
+      map.addSource('atl_boundary',  {type: 'vector', url: "mapbox://uhwang3.atl_boundary" });
+
+      map.addSource('main_road_3counties',  {type: 'vector', url: "mapbox://uhwang3.cl0q27y7p3mcw20qgismthmry-4a3tz" });
+
+      map.addLayer(
+        {
+          'id': 'main_road_3counties',
+          'type': 'line',
+          'source': 'main_road_3counties',
+          'source-layer': 'main_road_3counties',
+          'paint': {
+            'line-color': 'rgba(20,20,20,0.7)',
+            'line-width': 1.5
+          }
+        },
+      );
+
+      map.addLayer(
+        {
+          'id': 'atl_boundary',
+          'type': 'fill',
+          'source': 'atl_boundary',
+          'source-layer': 'atl_boundary',
+          'paint': {
+            'fill-color':'rgba(0,0,0,0)',
+            'fill-outline-color': 'rgba(200,200,200,0.5)'
+          }
+        },
+      );
+    })
+
+    // add the same additional maps on the relative map as well
+    map_rel.on('load', () => {
+      map_rel.addSource('main_road_3counties',  {type: 'vector', url: "mapbox://uhwang3.cl0q27y7p3mcw20qgismthmry-4a3tz" });
+
+      map_rel.addLayer(
+        {
+          'id': 'main_road_3counties',
+          'type': 'line',
+          'source': 'main_road_3counties',
+          'source-layer': 'main_road_3counties',
+          'paint': {
+            'line-color': 'rgba(20,20,20,0.7)',
+            'line-width': 1.5
+          }
+        },
+      );
+
+      map_rel.addSource('atl_boundary',  {type: 'vector', url: "mapbox://uhwang3.atl_boundary" });
+
+      map_rel.addLayer(
+        {
+          'id': 'atl_boundary',
+          'type': 'fill',
+          'source': 'atl_boundary',
+          'source-layer': 'atl_boundary',
+          'paint': {
+            'fill-color':'rgba(0,0,0,0)',
+            'fill-outline-color': 'rgba(200,200,200,0.5)'
+          }
+        },
+      );
+    })
+
+    // search box
+    map_rel.addControl(
+      new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl,
+      }),
+      'bottom-right'
+    );
+
+  } // ready ends here
+
+  function coordinate() {
+
+    var disable = false;
+
+    map.on('move', function() {
+      if (!disable) {
+        var center = map.getCenter();
+        var zoom = map.getZoom();
+        var pitch = map.getPitch();
+        var bearing = map.getBearing();
+
+        disable = true;
+        map_rel.setCenter(center);
+        map_rel.setZoom(zoom);
+        map_rel.setPitch(pitch);
+        map_rel.setBearing(bearing);
+        disable = false;
+      }
+    })
+
+    map_rel.on('move', function() {
+      if (!disable) {
+        var center = map_rel.getCenter();
+        var zoom = map_rel.getZoom();
+        var pitch = map_rel.getPitch();
+        var bearing = map_rel.getBearing();
+
+        disable = true;
+        map.setCenter(center);
+        map.setZoom(zoom);
+        map.setPitch(pitch);
+        map.setBearing(bearing);
+        disable = false;
+      }
+    })
+  }
+
+coordinate();
+
+</script>
+
+</body>
+</html>
