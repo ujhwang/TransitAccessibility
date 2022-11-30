@@ -1,3 +1,3 @@
 Atlanta Public Transit Accessibility Analysis
 
-https://uhwang3.github.io/TransitAccessibility
+https://ujhwang.github.io/TransitAccessibility
